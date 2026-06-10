@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Client CRM"/>
+<title>Client Manager - Divine Service</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#030712;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overscroll-behavior:none;}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:inherit;}
+input,textarea,select{font-family:inherit;color:#fff;}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);}
+::-webkit-scrollbar{display:none;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+.max-w{max-width:480px;margin:0 auto;}
+/* Colors */
+.bg-dark{background:#030712;}
+.bg-card{background:#111827;}
+.bg-input{background:#1f2937;}
+.border-card{border:1px solid #1f2937;}
+.border-input{border:1px solid #374151;}
+.text-gold{color:#f59e0b;}
+.text-muted{color:#9ca3af;}
+.text-sm{font-size:13px;}
+.text-xs{font-size:11px;}
+/* Header */
+.header{background:#111827;border-bottom:1px solid #1f2937;padding:12px 16px;position:sticky;top:0;z-index:100;}
+.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.app-label{font-size:10px;color:#f59e0b;font-weight:600;letter-spacing:.1em;text-transform:uppercase;}
+.app-title{font-size:20px;font-weight:700;}
+.btn-add{width:40px;height:40px;border-radius:12px;background:#f59e0b;color:#000;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(245,158,11,.3);}
+.search-box{width:100%;background:#1f2937;border:1px solid #374151;border-radius:12px;padding:10px 14px;font-size:13px;color:#fff;outline:none;}
+.search-box:focus{border-color:#f59e0b;}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 0;}
+.stat-card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:12px;text-align:center;}
+.stat-num{font-size:24px;font-weight:700;}
+.stat-label{font-size:11px;color:#9ca3af;margin-top:2px;}
+/* Urgent */
+.urgent-banner{margin:12px 16px 0;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px;}
+.urgent-title{font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;}
+.urgent-item{display:block;width:100%;text-align:left;padding:6px 0;border-bottom:1px solid rgba(239,68,68,.08);font-size:13px;}
+.urgent-item:last-child{border:none;}
+/* Filter chips */
+.filter-row{display:flex;gap:8px;padding:12px 16px 0;overflow-x:auto;}
+.chip{flex-shrink:0;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid #374151;color:#9ca3af;background:#111827;white-space:nowrap;}
+.chip.active{background:#f59e0b;color:#000;border-color:#f59e0b;}
+/* Client list */
+.client-list{padding:12px 16px 80px;display:flex;flex-direction:column;gap:10px;}
+.client-card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:14px;display:flex;gap:12px;width:100%;text-align:left;transition:border-color .15s;}
+.client-card:active{transform:scale(0.98);}
+.avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#000;flex-shrink:0;}
+.client-info{flex:1;min-width:0;}
+.client-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.client-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.client-pos{font-size:11px;color:#f59e0b;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.client-company{font-size:11px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.next-action{font-size:11px;color:#6b7280;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:500;white-space:nowrap;}
+.badge-dot{width:5px;height:5px;border-radius:50%;}
+.badge-blue{background:rgba(59,130,246,.15);color:#93c5fd;} .badge-blue .badge-dot{background:#60a5fa;}
+.badge-yellow{background:rgba(234,179,8,.15);color:#fde047;} .badge-yellow .badge-dot{background:#facc15;}
+.badge-green{background:rgba(34,197,94,.15);color:#86efac;} .badge-green .badge-dot{background:#4ade80;}
+.badge-purple{background:rgba(168,85,247,.15);color:#d8b4fe;} .badge-purple .badge-dot{background:#c084fc;}
+.badge-gray{background:rgba(107,114,128,.15);color:#d1d5db;} .badge-gray .badge-dot{background:#9ca3af;}
+.fu-badge{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:500;margin-top:4px;}
+.fu-red{background:rgba(239,68,68,.15);color:#fca5a5;}
+.fu-orange{background:rgba(249,115,22,.15);color:#fdba74;}
+.fu-yellow{background:rgba(234,179,8,.15);color:#fde047;}
+.fu-gray{background:rgba(107,114,128,.15);color:#9ca3af;}
+/* Empty */
+.empty{text-align:center;padding:60px 20px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-text{color:#9ca3af;font-size:13px;}
+.btn-primary{margin-top:16px;padding:10px 24px;background:#f59e0b;color:#000;border-radius:12px;font-size:13px;font-weight:700;}
+/* Detail screen */
+.back-header{background:#111827;border-bottom:1px solid #1f2937;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{font-size:20px;color:#9ca3af;padding:4px;}
+.back-title{flex:1;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.back-company{font-size:11px;color:#9ca3af;}
+.edit-btn{color:#f59e0b;font-size:13px;font-weight:500;}
+/* Profile card */
+.profile-card{margin:14px 16px 0;background:linear-gradient(135deg,#1f2937,#111827);border:1px solid #374151;border-radius:16px;padding:14px;}
+.profile-top{display:flex;gap:12px;align-items:flex-start;}
+.profile-avatar{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;flex-shrink:0;}
+.profile-name{font-size:18px;font-weight:700;}
+.profile-pos{color:#f59e0b;font-size:13px;}
+.profile-company{color:#9ca3af;font-size:12px;}
+.profile-status{margin-top:8px;}
+.profile-fu-row{margin-top:12px;padding-top:12px;border-top:1px solid #374151;display:flex;align-items:center;justify-content:space-between;}
+/* Tabs */
+.tabs{display:flex;gap:4px;margin:14px 16px 0;background:#111827;border-radius:14px;padding:4px;}
+.tab{flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:500;color:#9ca3af;text-align:center;}
+.tab.active{background:#f59e0b;color:#000;}
+/* Tab content */
+.tab-content{margin:12px 16px 100px;}
+.info-row{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.info-icon{font-size:18px;flex-shrink:0;}
+.info-label{font-size:10px;color:#9ca3af;}
+.info-val{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.contact-btn{font-size:11px;background:rgba(245,158,11,.15);color:#fbbf24;padding:4px 10px;border-radius:8px;white-space:nowrap;text-decoration:none;}
+/* Textarea note */
+.note-box{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:14px;}
+.note-label{font-size:10px;color:#9ca3af;margin-bottom:8px;}
+textarea{width:100%;background:#1f2937;border:1px solid #374151;border-radius:10px;padding:10px 12px;font-size:13px;color:#fff;outline:none;resize:none;}
+textarea:focus{border-color:#f59e0b;}
+textarea::placeholder{color:#6b7280;}
+.next-action-box{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:14px;margin-top:10px;}
+.next-action-label{font-size:10px;color:#c084fc;margin-bottom:4px;}
+.next-action-text{font-size:13px;}
+/* Follow-up tab */
+.fu-card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:14px;}
+.fu-field{margin-bottom:14px;}
+.fu-field:last-child{margin-bottom:0;}
+.field-label{font-size:11px;color:#9ca3af;margin-bottom:6px;}
+input[type="date"],input[type="text"],input[type="tel"],input[type="email"],input[type="url"]{width:100%;background:#1f2937;border:1px solid #374151;border-radius:10px;padding:10px 12px;font-size:13px;color:#fff;outline:none;}
+input:focus{border-color:#f59e0b;}
+input::placeholder{color:#6b7280;}
+.fu-alert{border-radius:14px;padding:14px;margin-top:10px;display:flex;align-items:center;gap:12px;}
+.fu-alert-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);}
+.fu-alert-yellow{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);}
+.fu-alert-default{background:#111827;border:1px solid #1f2937;}
+.fu-alert-icon{font-size:24px;flex-shrink:0;}
+.fu-alert-title{font-size:13px;font-weight:500;}
+.fu-alert-date{font-size:11px;color:#9ca3af;margin-top:2px;}
+/* Bottom bar */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:#030712;border-top:1px solid #1f2937;max-width:480px;margin:0 auto;}
+.btn-delete{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(239,68,68,.4);color:#f87171;font-size:13px;}
+.confirm-row{display:flex;gap:8px;}
+.btn-cancel{flex:1;padding:12px;border-radius:12px;border:1px solid #374151;color:#9ca3af;font-size:13px;}
+.btn-confirm-del{flex:1;padding:12px;border-radius:12px;background:#dc2626;color:#fff;font-size:13px;font-weight:700;}
+/* Add/Edit form */
+.form-section{margin:12px 16px 100px;display:flex;flex-direction:column;gap:14px;}
+.form-field{}
+.form-label{font-size:11px;color:#9ca3af;margin-bottom:6px;}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.status-btn{padding:10px;border-radius:10px;font-size:12px;font-weight:500;border:1px solid #374151;color:#9ca3af;background:#1f2937;}
+.status-btn.selected{border-color:#f59e0b;background:rgba(245,158,11,.15);color:#fbbf24;}
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:#030712;border-top:1px solid #1f2937;max-width:480px;margin:0 auto;}
+.btn-save{width:100%;padding:14px;border-radius:14px;background:#f59e0b;color:#000;font-size:15px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- LIST SCREEN -->
+<div id="screen-list" class="screen active bg-dark">
+<div class="max-w">
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="app-label">Divine Service Ltd.</div>
+        <div class="app-title">Client Manager</div>
+      </div>
+      <button class="btn-add" onclick="openAdd()">+</button>
+    </div>
+    <input class="search-box" id="search-input" placeholder="🔍 নাম, কোম্পানি বা পজিশন খুঁজুন..." oninput="renderList()"/>
+  </div>
+  <div class="stats" id="stats-row"></div>
+  <div id="urgent-banner"></div>
+  <div class="filter-row" id="filter-row"></div>
+  <div class="client-list" id="client-list"></div>
+</div>
+</div>
+
+<!-- DETAIL SCREEN -->
+<div id="screen-detail" class="screen bg-dark">
+<div class="max-w">
+  <div class="back-header">
+    <button class="back-btn" onclick="showList()">←</button>
+    <div style="flex:1;min-width:0;">
+      <div class="back-title" id="detail-name"></div>
+      <div class="back-company" id="detail-company"></div>
+    </div>
+    <button class="edit-btn" onclick="openEditFromDetail()">সম্পাদনা</button>
+  </div>
+  <div class="profile-card" id="profile-card"></div>
+  <div class="tabs" id="detail-tabs">
+    <button class="tab active" onclick="setDetailTab('info',this)">তথ্য</button>
+    <button class="tab" onclick="setDetailTab('notes',this)">নোট</button>
+    <button class="tab" onclick="setDetailTab('followup',this)">ফলো-আপ</button>
+  </div>
+  <div class="tab-content" id="detail-tab-content"></div>
+  <div class="bottom-bar" id="delete-bar">
+    <button class="btn-delete" id="delete-btn" onclick="confirmDelete()">এই ক্লায়েন্ট মুছে ফেলুন</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD/EDIT SCREEN -->
+<div id="screen-add" class="screen bg-dark">
+<div class="max-w">
+  <div class="back-header">
+    <button class="back-btn" onclick="cancelAdd()">←</button>
+    <div class="back-title" id="add-title">নতুন ক্লায়েন্ট</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="tabs" id="add-tabs">
+    <button class="tab active" onclick="setAddTab('info',this)">তথ্য</button>
+    <button class="tab" onclick="setAddTab('contact',this)">যোগাযোগ</button>
+    <button class="tab" onclick="setAddTab('followup',this)">ফলো-আপ</button>
+  </div>
+  <div class="form-section" id="add-form-content"></div>
+  <div class="save-bar">
+    <button class="btn-save" onclick="saveClient()">সেভ করুন ✓</button>
+  </div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'divine_crm_v2';
+let clients = [];
+let selectedId = null;
+let editingId = null;
+let currentDetailTab = 'info';
+let currentAddTab = 'info';
+let filterStatus = 'সব';
+let showDeleteConfirm = false;
+
+const statusMeta = {
+  'নতুন': {cls:'badge-blue'},
+  'যোগাযোগ হয়েছে': {cls:'badge-yellow'},
+  'আগ্রহী': {cls:'badge-green'},
+  'চুক্তি চলছে': {cls:'badge-purple'},
+  'সম্পন্ন': {cls:'badge-gray'},
+};
+
+function load() {
+  try { clients = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { clients = []; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(clients)); } catch {}
+}
+load();
+
+function daysDiff(d) {
+  if (!d) return null;
+  return Math.ceil((new Date(d) - new Date()) / 86400000);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('bn-BD', {day:'numeric',month:'short',year:'numeric'});
+}
+function badge(status) {
+  const m = statusMeta[status] || statusMeta['নতুন'];
+  return `<span class="badge ${m.cls}"><span class="badge-dot"></span>${status}</span>`;
+}
+function fuBadge(d) {
+  const days = daysDiff(d);
+  if (days === null) return '';
+  if (days < 0) return `<span class="fu-badge fu-red">⚠ ${Math.abs(days)}দিন পার</span>`;
+  if (days === 0) return `<span class="fu-badge fu-orange">🔔 আজকেই!</span>`;
+  if (days <= 3) return `<span class="fu-badge fu-yellow">⏰ ${days}দিন বাকি</span>`;
+  return `<span class="fu-badge fu-gray">📅 ${days}দিন বাকি</span>`;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showList() { showScreen('screen-list'); renderList(); }
+
+// RENDER LIST
+function renderList() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  // Stats
+  const urgent = clients.filter(c => { const d=daysDiff(c.followUpDate); return d!==null && d<=0; });
+  const thisWeek = clients.filter(c => { const d=daysDiff(c.followUpDate); return d!==null && d>0 && d<=7; });
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${clients.length}</div><div class="stat-label">মোট</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#f87171">${urgent.length}</div><div class="stat-label">আজ ফলো-আপ</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#fde047">${thisWeek.length}</div><div class="stat-label">এই সপ্তাহে</div></div>
+  `;
+  // Urgent
+  let ub = '';
+  if (urgent.length > 0) {
+    ub = `<div class="urgent-banner"><div class="urgent-title">🚨 এখনই ফলো-আপ করো!</div>`;
+    urgent.slice(0,3).forEach(c => {
+      ub += `<button class="urgent-item" onclick="openDetail('${c.id}')">${c.name} <span style="color:#9ca3af;font-size:11px">· ${c.company||''}</span></button>`;
+    });
+    ub += '</div>';
+  }
+  document.getElementById('urgent-banner').innerHTML = ub;
+  // Filters
+  const statuses = ['সব', ...Object.keys(statusMeta)];
+  document.getElementById('filter-row').innerHTML = statuses.map(s =>
+    `<button class="chip${filterStatus===s?' active':''}" onclick="setFilter('${s}')">${s}</button>`
+  ).join('');
+  // List
+  let filtered = clients.filter(c => {
+    const ms = !search || (c.name||'').toLowerCase().includes(search) || (c.company||'').toLowerCase().includes(search) || (c.position||'').toLowerCase().includes(search);
+    const mf = filterStatus === 'সব' || c.status === filterStatus;
+    return ms && mf;
+  }).sort((a,b) => {
+    const da=daysDiff(a.followUpDate), db=daysDiff(b.followUpDate);
+    if(da!==null && db!==null) return da-db;
+    if(da!==null) return -1; if(db!==null) return 1; return 0;
+  });
+  if (filtered.length === 0) {
+    document.getElementById('client-list').innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">কোনো ক্লায়েন্ট নেই</div><button class="btn-primary" onclick="openAdd()">প্রথম ক্লায়েন্ট যোগ করুন</button></div>`;
+    return;
+  }
+  document.getElementById('client-list').innerHTML = filtered.map(c => `
+    <button class="client-card" onclick="openDetail('${c.id}')">
+      <div class="avatar">${(c.name||'?').charAt(0).toUpperCase()}</div>
+      <div class="client-info">
+        <div class="client-name-row">
+          <div class="client-name">${c.name||''}</div>
+          ${badge(c.status||'নতুন')}
+        </div>
+        <div class="client-pos">${c.position||''}</div>
+        <div class="client-company">${c.company||''}</div>
+        ${c.followUpDate ? fuBadge(c.followUpDate) : ''}
+        ${c.nextAction ? `<div class="next-action">🎯 ${c.nextAction}</div>` : ''}
+      </div>
+    </button>
+  `).join('');
+}
+function setFilter(s) { filterStatus = s; renderList(); }
+
+// DETAIL
+function openDetail(id) {
+  selectedId = id;
+  currentDetailTab = 'info';
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('detail-name').textContent = c.name||'';
+  document.getElementById('detail-company').textContent = c.company||'';
+  renderProfile(c);
+  renderDetailTab('info');
+  document.querySelectorAll('#detail-tabs .tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  showDeleteConfirm = false;
+  renderDeleteBar();
+  showScreen('screen-detail');
+}
+function renderProfile(c) {
+  const days = daysDiff(c.followUpDate);
+  document.getElementById('profile-card').innerHTML = `
+    <div class="profile-top">
+      <div class="profile-avatar">${(c.name||'?').charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="profile-name">${c.name||''}</div>
+        <div class="profile-pos">${c.position||''}</div>
+        <div class="profile-company">${c.company||''}</div>
+        <div class="profile-status" style="margin-top:8px;">${badge(c.status||'নতুন')}</div>
+      </div>
+    </div>
+    ${c.followUpDate ? `<div class="profile-fu-row"><span style="font-size:11px;color:#9ca3af;">ফলো-আপ: ${fmtDate(c.followUpDate)}</span>${fuBadge(c.followUpDate)}</div>` : ''}
+  `;
+}
+function setDetailTab(tab, el) {
+  currentDetailTab = tab;
+  document.querySelectorAll('#detail-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderDetailTab(tab);
+}
+function renderDetailTab(tab) {
+  const c = clients.find(x => x.id === selectedId);
+  if (!c) return;
+  const el = document.getElementById('detail-tab-content');
+  if (tab === 'info') {
+    const rows = [
+      {icon:'📱', label:'মোবাইল', val:c.mobile, href:`tel:${c.mobile}`},
+      {icon:'💬', label:'WhatsApp', val:c.whatsapp, href:`https://wa.me/${(c.whatsapp||'').replace(/\D/g,'')}`},
+      {icon:'✉️', label:'ইমেইল', val:c.email, href:`mailto:${c.email}`},
+      {icon:'🔗', label:'LinkedIn', val:c.linkedin, href:c.linkedin},
+      {icon:'📅', label:'শেষ যোগাযোগ', val:fmtDate(c.lastContact), href:null},
+    ].filter(r => r.val && r.val !== '—');
+    el.innerHTML = rows.map(r => `
+      <div class="info-row">
+        <span class="info-icon">${r.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="info-label">${r.label}</div>
+          <div class="info-val">${r.val}</div>
+        </div>
+        ${r.href && r.val ? `<a href="${r.href}" class="contact-btn">যোগাযোগ</a>` : ''}
+      </div>
+    `).join('') || '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px;">যোগাযোগের তথ্য নেই। সম্পাদনা করুন।</div>';
+  } else if (tab === 'notes') {
+    el.innerHTML = `
+      <div class="note-box">
+        <div class="note-label">📝 যোগাযোগের নোট ও ইতিহাস</div>
+        <textarea id="note-textarea" rows="8" placeholder="যেমন: ১০ জুন - ফোন দিলাম, আগ্রহী মনে হলো...">${c.notes||''}</textarea>
+      </div>
+      ${c.nextAction ? `<div class="next-action-box"><div class="next-action-label">🎯 পরবর্তী পদক্ষেপ</div><div class="next-action-text">${c.nextAction}</div></div>` : ''}
+    `;
+    document.getElementById('note-textarea').addEventListener('input', function() {
+      updateField(selectedId, 'notes', this.value);
+    });
+  } else if (tab === 'followup') {
+    const days = daysDiff(c.followUpDate);
+    let alertHtml = '';
+    if (c.followUpDate) {
+      const cls = days <= 0 ? 'fu-alert-red' : days <= 3 ? 'fu-alert-yellow' : 'fu-alert-default';
+      const icon = days <= 0 ? '🚨' : days <= 3 ? '⏰' : '📅';
+      const msg = days < 0 ? `${Math.abs(days)} দিন আগে ফলো-আপ করার কথা ছিল!` : days === 0 ? 'আজকেই ফলো-আপ করো!' : `${days} দিন পরে ফলো-আপ করতে হবে`;
+      alertHtml = `<div class="fu-alert ${cls}"><span class="fu-alert-icon">${icon}</span><div><div class="fu-alert-title">${msg}</div><div class="fu-alert-date">${fmtDate(c.followUpDate)}</div></div></div>`;
+    }
+    el.innerHTML = `
+      <div class="fu-card">
+        <div class="fu-field">
+          <div class="field-label">📅 ফলো-আপের তারিখ</div>
+          <input type="date" id="fu-date" value="${c.followUpDate||''}" min="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="fu-field">
+          <div class="field-label">🎯 তাকে কী বলতে হবে / পরবর্তী পদক্ষেপ</div>
+          <textarea id="fu-next" rows="3" placeholder="যেমন: নতুন প্রজেক্টের প্রপোজাল পাঠাতে হবে...">${c.nextAction||''}</textarea>
+        </div>
+        <div class="fu-field">
+          <div class="field-label">📞 শেষ যোগাযোগের তারিখ</div>
+          <input type="date" id="fu-last" value="${c.lastContact||''}"/>
+        </div>
+      </div>
+      ${alertHtml}
+    `;
+    document.getElementById('fu-date').addEventListener('change', function() {
+      updateField(selectedId, 'followUpDate', this.value);
+      const c2 = clients.find(x=>x.id===selectedId);
+      renderProfile(c2);
+      renderDetailTab('followup');
+    });
+    document.getElementById('fu-next').addEventListener('input', function() {
+      updateField(selectedId, 'nextAction', this.value);
+    });
+    document.getElementById('fu-last').addEventListener('change', function() {
+      updateField(selectedId, 'lastContact', this.value);
+    });
+  }
+}
+function updateField(id, key, val) {
+  clients = clients.map(c => c.id === id ? {...c, [key]: val} : c);
+  save();
+}
+function renderDeleteBar() {
+  document.getElementById('delete-bar').innerHTML = showDeleteConfirm
+    ? `<div class="confirm-row"><button class="btn-cancel" onclick="cancelDelete()">বাতিল</button><button class="btn-confirm-del" onclick="doDelete()">হ্যাঁ, মুছুন</button></div>`
+    : `<button class="btn-delete" onclick="confirmDelete()">এই ক্লায়েন্ট মুছে ফেলুন</button>`;
+}
+function confirmDelete() { showDeleteConfirm = true; renderDeleteBar(); }
+function cancelDelete() { showDeleteConfirm = false; renderDeleteBar(); }
+function doDelete() {
+  clients = clients.filter(c => c.id !== selectedId);
+  save(); showList();
+}
+
+// ADD / EDIT
+let formData = {};
+function emptyForm() {
+  return {name:'',position:'',company:'',email:'',whatsapp:'',mobile:'',linkedin:'',status:'নতুন',followUpDate:'',notes:'',lastContact:'',nextAction:''};
+}
+function openAdd() {
+  editingId = null;
+  formData = emptyForm();
+  currentAddTab = 'info';
+  document.getElementById('add-title').textContent = 'নতুন ক্লায়েন্ট';
+  document.querySelectorAll('#add-tabs .tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  renderAddForm('info');
+  showScreen('screen-add');
+}
+function openEditFromDetail() {
+  const c = clients.find(x => x.id === selectedId);
+  if (!c) return;
+  editingId = c.id;
+  formData = {...c};
+  currentAddTab = 'info';
+  document.getElementById('add-title').textContent = 'তথ্য সম্পাদনা';
+  document.querySelectorAll('#add-tabs .tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  renderAddForm('info');
+  showScreen('screen-add');
+}
+function cancelAdd() {
+  if (editingId) { openDetail(editingId); } else { showList(); }
+}
+function setAddTab(tab, el) {
+  syncFormFromDOM();
+  currentAddTab = tab;
+  document.querySelectorAll('#add-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderAddForm(tab);
+}
+function syncFormFromDOM() {
+  ['name','position','company','email','whatsapp','mobile','linkedin','followUpDate','lastContact','nextAction','notes'].forEach(k => {
+    const el = document.getElementById('f-'+k);
+    if (el) formData[k] = el.value;
+  });
+}
+function renderAddForm(tab) {
+  const el = document.getElementById('add-form-content');
+  const v = formData;
+  if (tab === 'info') {
+    el.innerHTML = `
+      <div class="form-field"><div class="form-label">নাম <span style="color:#f87171">*</span></div><input id="f-name" type="text" placeholder="Junayed Bayzid" value="${e(v.name)}"/></div>
+      <div class="form-field"><div class="form-label">পজিশন / পদ</div><input id="f-position" type="text" placeholder="Business Development Manager" value="${e(v.position)}"/></div>
+      <div class="form-field"><div class="form-label">কোম্পানি</div><input id="f-company" type="text" placeholder="Divine Service Ltd." value="${e(v.company)}"/></div>
+      <div class="form-field"><div class="form-label">অবস্থা / স্ট্যাটাস</div>
+        <div class="status-grid">${Object.keys(statusMeta).map(s=>`<button class="status-btn${v.status===s?' selected':''}" onclick="setStatus('${s}')">${s}</button>`).join('')}</div>
+      </div>
+    `;
+  } else if (tab === 'contact') {
+    el.innerHTML = `
+      <div class="form-field"><div class="form-label">মোবাইল নম্বর 📱</div><input id="f-mobile" type="tel" placeholder="+966 5XX XXX XXXX" value="${e(v.mobile)}"/></div>
+      <div class="form-field"><div class="form-label">WhatsApp নম্বর 💬</div><input id="f-whatsapp" type="tel" placeholder="+966 5XX XXX XXXX" value="${e(v.whatsapp)}"/></div>
+      <div class="form-field"><div class="form-label">ইমেইল ✉️</div><input id="f-email" type="email" placeholder="example@company.com" value="${e(v.email)}"/></div>
+      <div class="form-field"><div class="form-label">LinkedIn 🔗</div><input id="f-linkedin" type="url" placeholder="https://linkedin.com/in/..." value="${e(v.linkedin)}"/></div>
+    `;
+  } else if (tab === 'followup') {
+    el.innerHTML = `
+      <div class="form-field"><div class="form-label">ফলো-আপের তারিখ 📅</div><input id="f-followUpDate" type="date" value="${e(v.followUpDate)}" min="${new Date().toISOString().split('T')[0]}"/></div>
+      <div class="form-field"><div class="form-label">শেষ যোগাযোগের তারিখ 📞</div><input id="f-lastContact" type="date" value="${e(v.lastContact)}"/></div>
+      <div class="form-field"><div class="form-label">পরবর্তী পদক্ষেপ 🎯</div><textarea id="f-nextAction" rows="3" placeholder="তাকে কী বলতে হবে বা কী করতে হবে...">${e(v.nextAction)}</textarea></div>
+      <div class="form-field"><div class="form-label">নোট 📝</div><textarea id="f-notes" rows="4" placeholder="কখন কথা হয়েছে, কী নিয়ে কথা হয়েছে...">${e(v.notes)}</textarea></div>
+    `;
+  }
+}
+function e(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function setStatus(s) {
+  syncFormFromDOM();
+  formData.status = s;
+  renderAddForm('info');
+}
+function saveClient() {
+  syncFormFromDOM();
+  if (!(formData.name||'').trim()) { alert('নাম দেওয়া আবশ্যক!'); return; }
+  if (editingId) {
+    clients = clients.map(c => c.id === editingId ? {...formData, id: editingId} : c);
+  } else {
+    clients.push({...formData, id: Date.now().toString()});
+  }
+  save();
+  if (editingId) { selectedId = editingId; openDetail(editingId); } else { showList(); }
+}
+
+// Init
+renderList();
+</script>
+</body>
+</html>
